@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+*.xlsx
+*.xls
+*.csv
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Mac OS
+.DS_Store 
