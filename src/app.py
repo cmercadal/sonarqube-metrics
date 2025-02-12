@@ -1,5 +1,6 @@
-from SonarqubeClient import SonarqubeClient
-from ExcelHandlers import ExcelHandlers
+import SonarqubeClient
+import ExcelHandlers
+import os
 
 if __name__ == "__main__":
     # Example lists
@@ -7,8 +8,8 @@ if __name__ == "__main__":
     metrics = ['coverage', 'bugs', 'code_smells', 'vulnerabilities', 'security_hotspots']
     
     # Your SonarQube instance URL
-    sonarqube_url = "http://localhost:9000"
-    auth_token = "squ_ffadef7528cd7f83a819574b06992f5f4722ec6a"
+    sonarqube_url = os.getEnv("SONAR_URL", "http://localhost:9000")
+    auth_token = os.getEnv("SONAR_TOKEN")
     
     sonarqube_client = SonarqubeClient(sonarqube_url, auth_token)
     # Get the metrics
