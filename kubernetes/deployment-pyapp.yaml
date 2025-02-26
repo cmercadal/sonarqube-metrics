@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: py-configmap
+data:
+  SONAR_URL: "http://sonarqube-svc:9000"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: py-secret
+type: Opaque
+data:
+  SONAR_TOKEN: c29uYXI=
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: py-app-svc
+spec:
+  selector:
+    app: py-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: py-app
+spec:
+  replicas: 1  # Defines the number of pod replicas
+  selector:
+    matchLabels:
+      app: py-app  # Selector to match pods
+  template:
+    metadata:
+      labels:
+        app: py-app  # Labels must match the selector
+    spec:
+      containers:
+      - name: py-app
+        image: py-app
+        env:
+        - name: SONAR_URL
+          valueFrom:
+            configMapKeyRef:
+              name: py-configmap
+              key: SONAR_URL
+        - name: SONAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: py-secret
+              key: SONAR_TOKEN
+        ports:
+         - containerPort: 80

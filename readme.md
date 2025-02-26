@@ -38,3 +38,21 @@ If you haven't mounted a volume, you can copy the output file to your local:
 ```sh
 docker cp python_app:/app/output.xlsx .
 ```
+
+### Other useful commands
+
+#Base64
+```sh
+echo -n “some-string” | base64
+```
+```sh
+echo -n “some-string” | base64 --decode
+```
+
+## Kubernetes manifest
+
+Repository also have kubernetes manifest files to deploy a postgres database, the sonarqube instance and the application. I run it with minikube and port forwarding (docker desktop and mac)
+
+```sh
+kubectl port-forward svc/sonarqube-svc 9000:9000
+```

@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarqube-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: "/tmp/sonarqube" # use temp on mac
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarqube-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sq-configmap
+data:
+  SONAR_JDBC_URL: "jdbc:postgresql://postgres-svc:5432/sonarqube"
+  SONAR_JDBC_USERNAME: "sonar"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sq-secret
+type: Opaque
+data:
+  SONAR_JDBC_PASSWORD: c29uYXI=
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarqube-svc
+spec:
+  selector:
+    app: sonarqube
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9000
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      containers:
+      - name: sonarqube
+        image: sonarqube:lts
+        ports:
+        - containerPort: 9000
+        envFrom:
+        - configMapRef:
+            name: sq-configmap
+        - secretRef:
+            name: sq-secret
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+        volumeMounts:
+        - name: sonarqube-storage
+          mountPath: /opt/sonarqube/data
+        readinessProbe:
+          httpGet:
+            path: /api/system/status
+            port: 9000  # Ensure it targets the correct internal port
+            httpHeaders:
+            - name: Authorization
+              value: "Basic YWRtaW46YWRtaW4="
+          initialDelaySeconds: 120
+          periodSeconds: 20
+        livenessProbe:
+          httpGet:
+            path: /api/system/status
+            port: 9000
+          initialDelaySeconds: 90
+          periodSeconds: 20
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      volumes:
+      - name: sonarqube-storage
+        emptyDir: {}
+          
+
